@@ -1,8 +1,6 @@
-import json
 from django.test import TestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from .models import User
 
 
 class RegisterViewTestCase(TestCase):
@@ -44,7 +42,6 @@ class LoginViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_login_success(self):
-        # Dados de login válidos
         login_data = {
             "email": "g@g",
             "password": "g"

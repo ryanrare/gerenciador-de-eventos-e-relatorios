@@ -5,9 +5,9 @@ from users.models import User
 class Event(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    created_at = models.DateField()
-    update_at = models.DateField()
-    deleted_at = models.DateField()
+    created_at = models.DateField(auto_now_add=True, null=True)
+    update_at = models.DateField(null=True, blank=True)
+    deleted_at = models.DateField(null=True, blank=True)
     location = models.CharField(max_length=255)
 
     class Meta:
