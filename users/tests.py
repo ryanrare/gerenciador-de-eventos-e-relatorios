@@ -53,3 +53,10 @@ class LoginViewTestCase(APITestCase):
         response = self.client.post('/users/login/', login_data, format='json')
 
         self.assertIn('jwt', response.data)
+
+
+class LogoutViewTestCase(APITestCase):
+    def test_logout_success(self):
+        response = self.client.post('/users/logout/')
+
+        self.assertIsNone(response.cookies.get('jwt'))
