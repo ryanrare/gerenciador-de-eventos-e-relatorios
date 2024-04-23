@@ -60,3 +60,4 @@ class LogoutViewTestCase(APITestCase):
         response = self.client.post('/users/logout/')
 
         self.assertIsNone(response.cookies.get('jwt'))
+

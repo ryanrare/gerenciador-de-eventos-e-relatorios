@@ -44,3 +44,17 @@ class LoginView(APIView):
         }
 
         return response
+
+
+class UserView(APIView):
+    pass
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        response = Response()
+        response.delete_cookie('jwt')
+        response.data = {
+            'message': 'Sucess'
+        }
+        return response
