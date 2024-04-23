@@ -2,7 +2,6 @@ import json
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
-from .models import User
 
 
 class RegisterViewTestCase(TestCase):
@@ -17,6 +16,6 @@ class RegisterViewTestCase(TestCase):
             "password": "t"
         }
 
-        response = self.client.post('/api/register/', user_data, format='json')
+        response = self.client.post('/users/register/', user_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
