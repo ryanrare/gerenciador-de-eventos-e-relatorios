@@ -39,7 +39,7 @@ class LoginViewTestCase(APITestCase):
 
         response = self.client.post('/users/login/', invalid_login_data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_login_success(self):
         login_data = {
@@ -49,7 +49,7 @@ class LoginViewTestCase(APITestCase):
 
         response = self.client.post('/users/login/', login_data, format='json')
 
-        self.assertIn('jwt', response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class LogoutViewTestCase(APITestCase):

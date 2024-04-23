@@ -1,6 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from django.http import JsonResponse
 from rest_framework.views import APIView
 
 from .serializers import UserSerializer
@@ -28,22 +31,28 @@ class LoginView(APIView):
         if user is None or not user.check_password(password):
             raise AuthenticationFailed('Unable to log in with the data provided')
 
-        payload = {
-            'id': user.id,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=360),
-            'iat': datetime.datetime.utcnow()
-        }
+        user = authenticate(request, username=email, password=password)
 
-        token = jwt.encode(payload, 'secret', algorithm='HS256')
+        refresh = RefreshToken.for_user(user)
 
-        response = Response()
+        # payload = {
+        #     'id': user.id,
+        #     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=360),
+        #     'iat': datetime.datetime.utcnow()
+        # }
+        #
+        # token = jwt.encode(payload, 'secret', algorithm='HS256')
+        #
+        # response = Response()
+        #
+        # response.set_cookie(key='jwt', value=token, httponly=True)
+        # response.data = {
+        #     'jwt': token
+        # }
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        response.data = {
-            'jwt': token
-        }
-
-        return response
+        return JsonResponse({
+            'jwt': str(refresh.acess_token),
+        })
 
 
 class UserView(APIView):
