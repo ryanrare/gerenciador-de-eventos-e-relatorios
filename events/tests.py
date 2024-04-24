@@ -125,7 +125,7 @@ class EventDetailPutViewTestCase(APITestCase):
         self.assertFalse(Event.objects.filter(id=self.event.id).exists())
 
 
-class UserEventPostViewTestCase(APITestCase):
+class UserEventPostDeleteViewTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
 
@@ -167,3 +167,13 @@ class UserEventPostViewTestCase(APITestCase):
         response = self.client.post(f'/events/{self.event.id}/register/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'User is already registered for this event.')
+
+    def test_user_event_delete(self):
+        user = User.objects.get(email=self.user_data['email'])
+        user_event = UserEvent.objects.create(user=user, event=self.event)
+
+        response = self.client.delete(f'/events/{self.event.id}/register/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        user_event.refresh_from_db()
+        self.assertFalse(user_event.is_active)
