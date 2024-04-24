@@ -2,12 +2,11 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 from .serializers import EventSerializer
 from .models import Event
-
+from django.utils import timezone
 
 class EventListPostView(APIView, PageNumberPagination):
     page_size = 200
@@ -35,15 +34,23 @@ class EventListPostView(APIView, PageNumberPagination):
 
 
 class EventDetailPutView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    @method_decorator(login_required())
     def get(self, request, event_id):
-        pass
+        event = get_object_or_404(Event, id=event_id)
+        serializer = EventSerializer(event)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @method_decorator(login_required())
     def put(self, request, event_id):
-        pass
+        event = get_object_or_404(Event, id=event_id)
+        serializer = EventSerializer(event, data=request.data)
+        if serializer.is_valid():
+            serializer.validated_data['update_at'] = timezone.now().date()
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @method_decorator(login_required())
     def delete(self, request, event_id):
-        pass
+        event = get_object_or_404(Event, id=event_id)
+        event.delete()
+        return Response({"detail": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
