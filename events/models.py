@@ -11,6 +11,8 @@ class Event(models.Model):
     deleted_at = models.DateField(null=True, blank=True)
     location = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
+    capacity = models.IntegerField(default=0)
+    occupancy = models.IntegerField(default=0) 
 
     class Meta:
         verbose_name = 'event'

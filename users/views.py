@@ -9,8 +9,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 
-from .serializers import UserSerializer
-from events.serializers import UserEventSerializer
+from .serializers import UserSerializer, UserEventSerializer
 from .models import User
 from events.models import UserEvent
 
@@ -37,12 +36,6 @@ class LoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
-        # payload = {'id': user.id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=360), 'iat': datetime.datetime.utcnow()}
-        # token = jwt.encode(payload, 'secret', algorithm='HS256') #instalar lib, outra forma de fazer login
-        # response = Response()
-        # response.set_cookie(key='jwt', value=token, httponly=True)
-        # response.data = {'jwt': token}
-
         return JsonResponse({'jwt': str(refresh.access_token)})
 
 
@@ -51,7 +44,7 @@ class UserEventListView(APIView):
 
     def get(self, request):
         user = request.user
-        user_events = UserEvent.objects.filter(user=user, is_active=True)
+        user_events = UserEvent.objects.filter(user=user)
         serializer = UserEventSerializer(user_events, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
