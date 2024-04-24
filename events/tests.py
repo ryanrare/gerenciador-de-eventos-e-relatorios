@@ -3,8 +3,9 @@ from rest_framework import status
 from datetime import datetime
 from django.utils import timezone
 
-from .models import Event
-from .serializers import EventSerializer
+from .models import Event, UserEvent
+from users.models import User
+from .serializers import EventSerializer, UserEventSerializer
 
 
 class EventListPostViewTestCase(APITestCase):
@@ -122,3 +123,47 @@ class EventDetailPutViewTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         self.assertFalse(Event.objects.filter(id=self.event.id).exists())
+
+
+class UserEventPostViewTestCase(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user_data = {
+            "name": "testuser",
+            "email": "g@g",
+            "password": "g"
+        }
+        response = self.client.post('/users/register/', self.user_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        login_data = {
+            'email': 'g@g',
+            'password': 'g'
+        }
+        response = self.client.post('/users/login/', login_data)
+        self.assertEqual(response.status_code, 200)
+        self.token = response.json()['jwt']
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+
+        self.event = Event.objects.create(title='Seminario', description='Descrição do evento', created_at=timezone.now(), location='Local do evento')
+
+    def test_user_event_post(self):
+        response = self.client.post(f'/events/{self.event.id}/register/')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        user = User.objects.get(email=self.user_data['email'])
+
+        user_event = UserEvent.objects.filter(user=user, event=self.event).first()
+        self.assertIsNotNone(user_event)
+
+        serializer = UserEventSerializer(user_event)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_user_event_post_already_registered(self):
+        user = User.objects.get(email=self.user_data['email'])
+        UserEvent.objects.create(user=user, event=self.event)
+
+        response = self.client.post(f'/events/{self.event.id}/register/')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'User is already registered for this event.')
