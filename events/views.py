@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .serializers import EventSerializer
-from .models import Event
+from .serializers import EventSerializer, UserEventSerializer
+from .models import Event, UserEvent
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
@@ -35,7 +35,7 @@ class EventListPostView(APIView, PageNumberPagination):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EventDetailPutView(APIView):
+class EventDetailPutViewDelete(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, event_id):
@@ -56,3 +56,19 @@ class EventDetailPutView(APIView):
         event = get_object_or_404(Event, id=event_id)
         event.delete()
         return Response({"detail": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class UserEventPostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
+        user = request.user
+
+        if UserEvent.objects.filter(user=user, event=event).exists():
+            return Response({'error': 'User is already registered for this event.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_event = UserEvent.objects.create(user=user, event=event)
+        serializer = UserEventSerializer(user_event)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
