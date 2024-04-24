@@ -14,10 +14,17 @@ class EventListPostView(APIView, PageNumberPagination):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        page_number = request.query_params.get('page', 1)
+        page_size = request.query_params.get('page_size', 20)
+
+        paginator = PageNumberPagination()
+        paginator.page_size = page_size
+        paginator.page = page_number
+
         events = Event.objects.all()
-        events = self.paginate_queryset(events, self.request)
-        events_serializer = EventSerializer(events, many=True).data
-        return self.get_paginated_response(events_serializer)
+        results_page = paginator.paginate_queryset(events, request)
+        serializer = EventSerializer(results_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = EventSerializer(data=request.data)

@@ -9,9 +9,6 @@ from rest_framework.views import APIView
 from .serializers import UserSerializer
 from .models import User
 
-import datetime
-import jwt
-
 
 class RegisterView(APIView):
     def post(self, request):
@@ -35,24 +32,13 @@ class LoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
-        # payload = {
-        #     'id': user.id,
-        #     'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=360),
-        #     'iat': datetime.datetime.utcnow()
-        # }
-        #
-        # token = jwt.encode(payload, 'secret', algorithm='HS256')
-        #
+        # payload = {'id': user.id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=360), 'iat': datetime.datetime.utcnow()}
+        # token = jwt.encode(payload, 'secret', algorithm='HS256') #instalar lib, outra forma de fazer login
         # response = Response()
-        #
         # response.set_cookie(key='jwt', value=token, httponly=True)
-        # response.data = {
-        #     'jwt': token
-        # }
+        # response.data = {'jwt': token}
 
-        return JsonResponse({
-            'jwt': str(refresh.acess_token),
-        })
+        return JsonResponse({'jwt': str(refresh.access_token)})
 
 
 class UserView(APIView):
