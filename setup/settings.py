@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'users',
-    'events'
+    'events',
+    'notifications'
 ]
 
 MIDDLEWARE = [

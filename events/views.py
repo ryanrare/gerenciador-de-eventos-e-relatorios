@@ -3,7 +3,6 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 from .serializers import EventSerializer, UserEventSerializer
 from .models import Event, UserEvent
 from django.utils import timezone
@@ -46,7 +45,13 @@ class EventDetailPutViewDelete(APIView):
     def put(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         serializer = EventSerializer(event, data=request.data)
+        # criar uma notificaçoa com o tipo certo
+        # fazer um get em userEvent e pegar todos os ids dos usuarios do evento com o id desse evento do put que vc pegou
+        # inserir em userNotification uma linha para cada userid  que veio acima e notification ID da notificaçao que criou agora  com readed false e created_at com data e hora do momento
+        # enviar para o front essa notificaçao atraves do websocket
+
         if serializer.is_valid():
+
             serializer.validated_data['update_at'] = timezone.now().date()
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

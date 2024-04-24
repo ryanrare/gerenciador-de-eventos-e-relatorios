@@ -5,9 +5,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
 from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
 
 from .serializers import UserSerializer
+from events.serializers import UserEventSerializer
 from .models import User
+from events.models import UserEvent
 
 
 class RegisterView(APIView):
@@ -41,8 +46,14 @@ class LoginView(APIView):
         return JsonResponse({'jwt': str(refresh.access_token)})
 
 
-class UserView(APIView):
-    pass
+class UserEventListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_events = UserEvent.objects.filter(user=user, is_active=True)
+        serializer = UserEventSerializer(user_events, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
