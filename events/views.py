@@ -72,3 +72,18 @@ class UserEventPostView(APIView):
         serializer = UserEventSerializer(user_event)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, event_id):
+        event = get_object_or_404(Event, id=event_id)
+        user = request.user
+
+        try:
+            user_event = UserEvent.objects.get(user=user, event=event)
+        except UserEvent.DoesNotExist:
+            return Response({'error': 'User is not registered for this event.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_event.is_active = False
+        user_event.save()
+
+        serializer = UserEventSerializer(user_event)
+        return Response(serializer.data, status=status.HTTP_200_OK)
