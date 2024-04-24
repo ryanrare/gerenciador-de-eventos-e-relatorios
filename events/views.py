@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404
 from .serializers import EventSerializer
 from .models import Event
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
+
 
 class EventListPostView(APIView, PageNumberPagination):
     page_size = 200
