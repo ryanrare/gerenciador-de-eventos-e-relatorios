@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'cloudinary',
     'users',
     'events',
     'notifications'
@@ -153,3 +154,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
+#cloudnary imports
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+
+cloudinary.config(
+    cloud_name=os.getenv("SECRET_CLOUDNARY_NAME"),
+    api_key=os.getenv("SECRET_CLOUDNARY_API_KEY"),
+    api_secret=os.getenv("SECRET_CLOUDNARY_API_SECRET")
+)

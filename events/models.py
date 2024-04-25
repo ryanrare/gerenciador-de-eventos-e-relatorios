@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import User
+from cloudinary.models import CloudinaryField
 
 
 class Event(models.Model):
@@ -12,7 +13,8 @@ class Event(models.Model):
     location = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     capacity = models.IntegerField(default=0)
-    occupancy = models.IntegerField(default=0) 
+    occupancy = models.IntegerField(default=0)
+    image = CloudinaryField('image')
 
     class Meta:
         verbose_name = 'event'

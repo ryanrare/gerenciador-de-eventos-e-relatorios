@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -9,10 +10,12 @@ from notifications.models import Notification, UserEventNotification
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from threading import Thread
 
 
 class EventListPostView(APIView, PageNumberPagination):
     page_size = 200
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -51,7 +54,7 @@ class EventListPostView(APIView, PageNumberPagination):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EventDetailPutViewDelete(APIView):
+class EventDetailPutDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, event_id):
@@ -67,15 +70,21 @@ class EventDetailPutViewDelete(APIView):
             serializer.validated_data['update_at'] = timezone.now().date()
             event = serializer.save()
 
-            notification = Notification.objects.create(description="Evento atualizado", type="update")
-            user_events = UserEvent.objects.filter(event=event)
+            from notifications.utils import send_notifications_to_users
 
-            for user_event in user_events:
-                UserEventNotification.objects.create(
-                    user_event=user_event,
-                    notification=notification,
-                    sent_by=request.user
+            def send_notifications():
+                send_notifications_to_users(
+                    title=event.title,
+                    type_notification="update",
+                    event=event,
+                    user=request.user
                 )
+
+            notification_event = Thread(
+                target=send_notifications,
+                args=(event.title, "update", event, request.user)
+            )
+            notification_event.start()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -84,7 +93,10 @@ class EventDetailPutViewDelete(APIView):
     def delete(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         event.delete()
-        return Response({"detail": "Event deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"detail": f"the {event_id} event you are registered for has been canceled"},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class UserEventPostView(APIView):
