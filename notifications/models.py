@@ -16,6 +16,9 @@ class Notification(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        db_table = 'notification'
+
 
 class UserEventNotification(models.Model):
     user_event = models.ForeignKey(UserEvent, on_delete=models.CASCADE)
@@ -23,3 +26,6 @@ class UserEventNotification(models.Model):
     is_read = models.BooleanField(default=False)
     sent_at = models.DateTimeField(default=timezone.now)
     sent_by = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'user_event_notification'

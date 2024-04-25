@@ -5,8 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from .serializers import EventSerializer, UserEventSerializer
 from .models import Event, UserEvent
+from notifications.models import Notification, UserEventNotification
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 
 class EventListPostView(APIView, PageNumberPagination):
@@ -15,13 +17,28 @@ class EventListPostView(APIView, PageNumberPagination):
 
     def get(self, request):
         page_number = request.query_params.get('page', 1)
-        page_size = request.query_params.get('page_size', 20)
+        page_size = request.query_params.get('page_size', self.page_size)
+        query_params_mapping = {
+            'title_contains': 'title__icontains',
+            'description_contains': 'description__icontains',
+            'date': 'date',
+            'created_at': 'created_at',
+            'capacity': 'capacity',
+            'occupancy': 'occupancy',
+        }
+
+        query = Q()
+        for param, field_lookup in query_params_mapping.items():
+            value = request.query_params.get(param)
+            if value:
+                query |= Q(**{field_lookup: value})
+
+        events = Event.objects.filter(query)
 
         paginator = PageNumberPagination()
         paginator.page_size = page_size
         paginator.page = page_number
 
-        events = Event.objects.all()
         results_page = paginator.paginate_queryset(events, request)
         serializer = EventSerializer(results_page, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -45,16 +62,23 @@ class EventDetailPutViewDelete(APIView):
     def put(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         serializer = EventSerializer(event, data=request.data)
-        # criar uma notificaçoa com o tipo certo
-        # fazer um get em userEvent e pegar todos os ids dos usuarios do evento com o id desse evento do put que vc pegou
-        # inserir em userNotification uma linha para cada userid  que veio acima e notification ID da notificaçao que criou agora  com readed false e created_at com data e hora do momento
-        # enviar para o front essa notificaçao atraves do websocket
 
         if serializer.is_valid():
-
             serializer.validated_data['update_at'] = timezone.now().date()
-            serializer.save()
+            event = serializer.save()
+
+            notification = Notification.objects.create(description="Evento atualizado", type="update")
+            user_events = UserEvent.objects.filter(event=event)
+
+            for user_event in user_events:
+                UserEventNotification.objects.create(
+                    user_event=user_event,
+                    notification=notification,
+                    sent_by=request.user
+                )
+
             return Response(serializer.data, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, event_id):
@@ -83,12 +107,8 @@ class UserEventPostView(APIView):
         user = request.user
 
         try:
-            user_event = UserEvent.objects.get(user=user, event=event)
+            user_event = get_object_or_404(UserEvent, user=user, event=event)
+            user_event.delete()
+            return Response({"detail": "RegisterEventUser deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except UserEvent.DoesNotExist:
             return Response({'error': 'User is not registered for this event.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user_event.is_active = False
-        user_event.save()
-
-        serializer = UserEventSerializer(user_event)
-        return Response(serializer.data, status=status.HTTP_200_OK)

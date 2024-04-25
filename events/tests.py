@@ -1,11 +1,12 @@
-from rest_framework.test import APIClient, APITestCase
-from rest_framework import status
 from datetime import datetime
 from django.utils import timezone
 
+from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
+
 from .models import Event, UserEvent
-from users.models import User
 from .serializers import EventSerializer, UserEventSerializer
+from users.models import User
 
 
 class EventListPostViewTestCase(APITestCase):
@@ -42,6 +43,20 @@ class EventListPostViewTestCase(APITestCase):
         events = Event.objects.all()
         serializer = EventSerializer(events, many=True)
         self.assertEqual(response.data['results'], serializer.data)
+
+    def test_event_list_authenticated_with_title_filter(self):
+        Event.objects.create(title='Seminario', description='Descrição do evento 1', created_at=datetime.now(), location='Local 1')
+        Event.objects.create(title='Orquestra', description='Descrição do evento 2', created_at=datetime.now(), location='Local 2')
+        Event.objects.create(title='Workshop', description='Descrição do evento 3', created_at=datetime.now(), location='Local 3')
+
+        response = self.client.get('/events/', {'title_contains': 'Sem'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('results', response.data)
+        self.assertEqual(len(response.data['results']), 1)
+
+        seminario_event = Event.objects.get(title='Seminario')
+        serializer = EventSerializer(seminario_event)
+        self.assertEqual(response.data['results'][0], serializer.data)
 
     def test_event_list_unauthenticated(self):
         self.client.logout()
@@ -104,7 +119,7 @@ class EventDetailPutViewTestCase(APITestCase):
         serializer = EventSerializer(self.event)
         self.assertEqual(response.data, serializer.data)
 
-    def test_update_event(self):
+    def test_put_event(self):
         update_data = {
             "title": "Seminario Atualizado",
             "description": "Nova descrição do evento",
@@ -146,7 +161,8 @@ class UserEventPostDeleteViewTestCase(APITestCase):
         self.token = response.json()['jwt']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
 
-        self.event = Event.objects.create(title='Seminario', description='Descrição do evento', created_at=timezone.now(), location='Local do evento')
+        self.event = Event.objects.create(title='Seminario', description='Descrição do evento',
+                                          created_at=timezone.now(), location='Local do evento')
 
     def test_user_event_post(self):
         response = self.client.post(f'/events/{self.event.id}/register/')
@@ -170,10 +186,6 @@ class UserEventPostDeleteViewTestCase(APITestCase):
 
     def test_user_event_delete(self):
         user = User.objects.get(email=self.user_data['email'])
-        user_event = UserEvent.objects.create(user=user, event=self.event)
-
+        UserEvent.objects.create(user=user, event=self.event)
         response = self.client.delete(f'/events/{self.event.id}/register/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        user_event.refresh_from_db()
-        self.assertFalse(user_event.is_active)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
