@@ -2,17 +2,16 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
+active_consumers = []
+
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.accept()
+        active_consumers.append(self)
 
-        self.send(
-            text_data=json.dumps({
-                "type": "conexao estabeleciada",
-                "message": "notificação conectada com sucesso!"
-            })
-        )
+    def disconnect(self, close_code):
+        active_consumers.remove(self)
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -26,13 +25,3 @@ class ChatConsumer(WebsocketConsumer):
                 'message': message
             })
         )
-
-
-
-    def chat_message(self, event):
-        message = event['message']
-
-        self.send(text_data=json.dumps({
-            'type': 'chat',
-            'message': message
-        }))

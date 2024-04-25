@@ -72,17 +72,17 @@ class EventDetailPutDeleteView(APIView):
 
             from notifications.utils import send_notifications_to_users
 
-            def send_notifications():
+            def send_notifications(title, type_notification, event, user):
                 send_notifications_to_users(
                     title=event.title,
-                    type_notification="update",
+                    type_notification=type_notification,
                     event=event,
-                    user=request.user
+                    user=user
                 )
 
             notification_event = Thread(
                 target=send_notifications,
-                args=(event.title, "update", event, request.user)
+                args=(event.title, "update", event, request.user,)
             )
             notification_event.start()
 
