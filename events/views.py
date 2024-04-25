@@ -67,7 +67,7 @@ class EventDetailPutDeleteView(APIView):
         serializer = EventSerializer(event, data=request.data)
 
         if serializer.is_valid():
-            serializer.validated_data['update_at'] = timezone.now().date()
+            serializer.validated_data['updated_at'] = timezone.now().date()
             event = serializer.save()
 
             from notifications.utils import send_notifications_to_users
