@@ -56,3 +56,12 @@ class LogoutView(APIView):
             'message': 'Sucess'
         }
         return response
+
+
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
