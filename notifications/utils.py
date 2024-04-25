@@ -1,6 +1,6 @@
 from .models import Notification, UserEventNotification, UserEvent
-# from channels.layers import get_channel_layer
-# from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 def send_notifications_to_users(title, type_notification, event, user):
@@ -15,11 +15,11 @@ def send_notifications_to_users(title, type_notification, event, user):
             notification=notification,
             sent_by=user
         )
-    # channel_layer = get_channel_layer()
-    # async_to_sync(channel_layer.group_send)(
-    #     'notifications_group',
-    #     {
-    #         'type': 'send_notification',
-    #         'message': f"the {title} event you are registered for has been updated"
-    #     }
-    # )
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        'notifications_group',
+        {
+            'type': 'send_notification',
+            'message': f"the {title} event you are registered for has been updated"
+        }
+    )
