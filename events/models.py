@@ -17,7 +17,7 @@ class Event(models.Model):
     is_active = models.BooleanField(default=True)
     capacity = models.IntegerField(default=0)
     occupancy = models.IntegerField(default=0)
-    image = CloudinaryField('image')
+    image = CloudinaryField('image', null=True, blank=True)
 
     class Meta:
         verbose_name = 'event'
