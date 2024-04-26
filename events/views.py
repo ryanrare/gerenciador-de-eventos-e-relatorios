@@ -115,11 +115,58 @@ class EventListPostView(APIView, PageNumberPagination):
 class EventDetailPutDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Obtém detalhes de um evento.",
+        manual_parameters=[
+            openapi.Parameter('event_id', openapi.IN_QUERY, description="ID do evento de detalhe", type=openapi.TYPE_INTEGER),
+        ],
+        responses={200: EventSerializer(many=True)}
+    )
     def get(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Atualiza um evento já criado. No off cria uma notificação onde vc pode acessar em outro endpoit,"
+                              " alem de mandar para todos conectados no socket que o evento foi atualizado",
+        manual_parameters=[
+            openapi.Parameter('title_contains', openapi.IN_QUERY,
+                              description="título contendo o texto",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('description', openapi.IN_QUERY,
+                              description="descrição contendo o texto",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('start_date', openapi.IN_QUERY,
+                              description="data de início no formato ano-mes-dia, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Parameter('end_date', openapi.IN_QUERY,
+                              description="data de término no formato ano-mes-dia, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Parameter('start_time', openapi.IN_QUERY,
+                              description="horário de início no formato hora:minuto, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+            openapi.Parameter('end_time', openapi.IN_QUERY,
+                              description="horário de término no formato hora:minuto, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+            openapi.Parameter('created_at', openapi.IN_QUERY,
+                              description="data de criação, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+            openapi.Parameter('image', openapi.IN_QUERY,
+                              description="URL da imagem, que pode ser null",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('location', openapi.IN_QUERY,
+                              description="local, que pode ser null",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('occupancy', openapi.IN_QUERY,
+                              description="ocupação, que pode ser null",
+                              type=openapi.TYPE_INTEGER),
+            openapi.Parameter('capacity', openapi.IN_QUERY,
+                              description="capacidade, que pode ser null",
+                              type=openapi.TYPE_INTEGER),
+        ],
+        responses={200: EventSerializer(many=True)}
+    )
     def put(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         serializer = EventSerializer(event, data=request.data)

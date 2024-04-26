@@ -12,7 +12,8 @@ def send_notifications_to_users(title, type_notification, event, user):
     )
     event_data = {
         'title': title,
-        'event': event.id,
+        'event_id': event.id,
+        'notification_id': notification.id,
     }
     user_events = UserEvent.objects.filter(event=event)
     for user_event in user_events:
