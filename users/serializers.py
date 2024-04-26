@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User
 from events.models import Event, UserEvent
+from notifications.models import Notification, UserEventNotification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -36,3 +37,32 @@ class UserEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserEvent
         fields = ['user_id', 'event_data']
+
+
+class NotificationUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'description', 'type']
+
+
+class UserEventNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserEvent
+        fields = ['id', 'event']
+
+
+class UserNotificationSerializer(serializers.ModelSerializer):
+    notification = NotificationUserSerializer()
+    event_id = serializers.SerializerMethodField()
+    event_title = serializers.SerializerMethodField()
+
+
+    def get_event_id(self, obj):
+        return obj.user_event.event.id if obj.user_event else None
+
+    def get_event_title(self, obj):
+        return obj.user_event.event.title if obj.user_event else None
+
+    class Meta:
+        model = UserEventNotification
+        fields = ['notification', 'sent_by', 'sent_at', 'event_id', 'event_title']
