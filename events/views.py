@@ -8,7 +8,6 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .serializers import EventSerializer, UserEventSerializer
 from .models import Event, UserEvent
-from notifications.models import Notification, UserEventNotification
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -195,6 +194,13 @@ class EventDetailPutDeleteView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        operation_description="Cancela um evento com base no id da query.",
+        responses={
+            204: "O evento foi cancelado com sucesso.",
+            404: "O evento não foi encontrado."
+        }
+    )
     def delete(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         event.delete()
@@ -207,6 +213,16 @@ class EventDetailPutDeleteView(APIView):
 class UserEventPostView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Registra o usuário logado para um evento.",
+        manual_parameters=[
+            openapi.Parameter('event_id', openapi.IN_PATH, description="ID do evento", type=openapi.TYPE_INTEGER)
+        ],
+        responses={
+            201: "Usuário registrado com sucesso para o evento.",
+            400: "O usuário já está registrado para este evento."
+        }
+    )
     def post(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         user = request.user
@@ -219,6 +235,16 @@ class UserEventPostView(APIView):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @swagger_auto_schema(
+        operation_description="Remove o registro de um usuário para um evento.",
+        manual_parameters=[
+            openapi.Parameter('event_id', openapi.IN_PATH, description="ID do evento", type=openapi.TYPE_INTEGER)
+        ],
+        responses={
+            204: "Registro do usuário removido com sucesso para o evento.",
+            400: "O usuário não está registrado para este evento."
+        }
+    )
     def delete(self, request, event_id):
         event = get_object_or_404(Event, id=event_id)
         user = request.user
