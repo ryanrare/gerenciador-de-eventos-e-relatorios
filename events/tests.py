@@ -121,9 +121,17 @@ class EventDetailPutViewTestCase(APITestCase):
 
     def test_put_event(self):
         update_data = {
-            "title": "Seminario Atualizado",
-            "description": "Nova descrição do evento",
-            "location": "Novo local do evento"
+            "title": "Nome do Evento",
+            "description": "Descrição do Evento",
+            "start_date": "2024-05-01",
+            "end_date": "2024-05-03",
+            "start_time": "10:00:00",
+            "end_time": "15:00:00",
+            "location": "Local do Evento",
+            "is_active": True,
+            "capacity": 100,
+            "occupancy": 0,
+            "image": "URL_da_imagem"
         }
 
         response = self.client.put(f'/events/{self.event.id}/', update_data)
