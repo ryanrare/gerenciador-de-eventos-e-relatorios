@@ -106,8 +106,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'event_system',
         'USER': 'postgres',
-        'PASSWORD': os.getenv("SECRECT_DB_VALUE"),
-        'HOST': 'localhost',
+        'PASSWORD': 'mypassword',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
