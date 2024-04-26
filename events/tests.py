@@ -65,19 +65,33 @@ class EventListPostViewTestCase(APITestCase):
 
     def test_create_event(self):
         event_data = {
-            "title": "Seminario",
-            "description": "Descrição do evento",
-            "location": "Local do evento"
+            "title": "Nome do Evento",
+            "description": "Descrição do Evento",
+            "start_date": "2024-05-01",
+            "end_date": "2024-05-03",
+            "start_time": "10:00:00",
+            "end_time": "15:00:00",
+            "location": "Local do Evento",
+            "is_active": True,
+            "capacity": 100,
+            "occupancy": 0,
+            "image": "URL_da_imagem"
         }
+
 
         response = self.client.post('/events/', event_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(Event.objects.filter(title="Seminario").exists())
+        self.assertTrue(Event.objects.filter(title="Nome do Evento").exists())
 
         self.assertEqual(response.data['title'], event_data['title'])
         self.assertEqual(response.data['description'], event_data['description'])
         self.assertEqual(response.data['location'], event_data['location'])
+        self.assertEqual(response.data['start_date'], event_data['start_date'])
+        self.assertEqual(response.data['capacity'], event_data['capacity'])
+        self.assertEqual(response.data['end_time'], event_data['end_time'])
+
+
 
     def test_invalid_event_data(self):
         invalid_event_data = {
