@@ -56,7 +56,6 @@ class UserNotificationSerializer(serializers.ModelSerializer):
     event_id = serializers.SerializerMethodField()
     event_title = serializers.SerializerMethodField()
 
-
     def get_event_id(self, obj):
         return obj.user_event.event.id if obj.user_event else None
 

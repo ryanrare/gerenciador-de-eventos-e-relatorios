@@ -4,6 +4,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from .serializers import EventSerializer, UserEventSerializer
 from .models import Event, UserEvent
 from notifications.models import Notification, UserEventNotification
@@ -18,6 +20,23 @@ class EventListPostView(APIView, PageNumberPagination):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Obtém uma lista paginada de eventos.",
+        manual_parameters=[
+            openapi.Parameter('page', openapi.IN_QUERY, description="Número da página", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('page_size', openapi.IN_QUERY, description="Tamanho da página",
+                              type=openapi.TYPE_INTEGER),
+            openapi.Parameter('title_contains', openapi.IN_QUERY,
+                              description="Filtra eventos por título contendo o texto especificado",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('description_contains', openapi.IN_QUERY,
+                              description="Filtra eventos por descrição contendo o texto especificado",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('date', openapi.IN_QUERY, description="Filtra eventos pela data especificada",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+        ],
+        responses={200: EventSerializer(many=True)}
+    )
     def get(self, request):
         page_number = request.query_params.get('page', 1)
         page_size = request.query_params.get('page_size', self.page_size)
@@ -46,6 +65,45 @@ class EventListPostView(APIView, PageNumberPagination):
         serializer = EventSerializer(results_page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
+    @swagger_auto_schema(
+        operation_description="Cria um novo evento.",
+        manual_parameters=[
+            openapi.Parameter('title_contains', openapi.IN_QUERY,
+                              description="título contendo o texto",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('description', openapi.IN_QUERY,
+                              description="descrição contendo o texto",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('start_date', openapi.IN_QUERY,
+                              description="data de início no formato ano-mes-dia, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Parameter('end_date', openapi.IN_QUERY,
+                              description="data de término no formato ano-mes-dia, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATE),
+            openapi.Parameter('start_time', openapi.IN_QUERY,
+                              description="horário de início no formato hora:minuto, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+            openapi.Parameter('end_time', openapi.IN_QUERY,
+                              description="horário de término no formato hora:minuto, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+            openapi.Parameter('created_at', openapi.IN_QUERY,
+                              description="data de criação, que pode ser null",
+                              type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+            openapi.Parameter('image', openapi.IN_QUERY,
+                              description="URL da imagem, que pode ser null",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('location', openapi.IN_QUERY,
+                              description="local, que pode ser null",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('occupancy', openapi.IN_QUERY,
+                              description="ocupação, que pode ser null",
+                              type=openapi.TYPE_INTEGER),
+            openapi.Parameter('capacity', openapi.IN_QUERY,
+                              description="capacidade, que pode ser null",
+                              type=openapi.TYPE_INTEGER),
+        ],
+        responses={200: EventSerializer(many=True)}
+    )
     def post(self, request):
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid():
